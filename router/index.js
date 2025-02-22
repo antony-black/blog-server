@@ -1,4 +1,5 @@
 const router = require('express').Router();
+const multer = require('multer');
 
 const userController = require('../controllers/userController');
 const postController = require('../controllers/postController');
@@ -8,15 +9,50 @@ const {
   postCreationValidation,
 } = require('../validations/authValidation');
 const checkAuthMiddleware = require('../middlewares/checkAuthMiddleware');
+const validationErrorMiddleware = require('../middlewares/validationErrorMiddleware');
 
-router.post('/register', registrationValidation, userController.register);
-router.post('/login', loginValidation, userController.login);
-router.get('/info', checkAuthMiddleware, userController.getUserInfo);
+const uploadDestination = 'uploads';
 
-router.post('/create', checkAuthMiddleware, postCreationValidation, postController.create);
-router.get('/all', checkAuthMiddleware, postController.getAll);
-router.get('/single/:id', checkAuthMiddleware, postController.getSingle);
-router.patch('/update/:id', checkAuthMiddleware, postController.update);
-router.delete('/remove/:id', checkAuthMiddleware, postController.remove);
+const storage = multer.diskStorage({
+  destination: (_, __, cb) => {
+    cb(null, uploadDestination);
+  },
+  filename: (_, file, cb) => {
+    cb(null, file.originalname);
+  },
+});
+
+const upload = multer({ storage });
+
+router.post(
+  '/auth/register',
+  registrationValidation,
+  validationErrorMiddleware,
+  userController.register,
+);
+router.post(
+  '/auth/login', 
+  loginValidation, 
+  validationErrorMiddleware, 
+  userController.login
+);
+router.get('/auth/info', checkAuthMiddleware, userController.getUserInfo);
+router.post(
+  '/upload', 
+  checkAuthMiddleware, 
+  upload.single('image'), 
+  postController.upload
+);
+router.get('/posts/all', postController.getAll);
+router.get('/posts/single/:id', postController.getSingle);
+router.post(
+  '/posts/create',
+  checkAuthMiddleware,
+  postCreationValidation,
+  validationErrorMiddleware,
+  postController.create,
+);
+router.patch('/posts/update/:id', checkAuthMiddleware, postController.update);
+router.delete('/posts/remove/:id', checkAuthMiddleware, postController.remove);
 
 module.exports = router;

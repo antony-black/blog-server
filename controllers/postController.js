@@ -56,6 +56,21 @@ class PostController {
       console.error("PostController/remove: coudn't remove this post.", error.message);
     }
   }
+
+  async upload(req, res) {
+    try {
+      const file = req.file;
+      if (!file) {
+        return res.status(400).json({ error: 'No file uploaded' });
+      }
+
+      const imageUrl = await PostService.upload(file);
+
+      res.json(imageUrl);
+    } catch (error) {
+      console.error("PostController/upload: coudn't upload this image.", error.message);
+    }
+  }
 }
 
 module.exports = new PostController();

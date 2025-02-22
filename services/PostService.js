@@ -53,6 +53,14 @@ class PostService {
 
     return post;
   }
+
+  async upload(file) {
+    const imageUrl = {
+      url: `/uploads/${file.originalname}`,
+    };
+
+    return imageUrl;
+  }
 }
 
 module.exports = new PostService();
